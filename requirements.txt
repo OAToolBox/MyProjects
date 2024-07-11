@@ -1,0 +1,2 @@
+burp==1.27
+googletrans==4.0.0rc1
