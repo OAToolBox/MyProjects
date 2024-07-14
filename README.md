@@ -20,14 +20,15 @@ To use these extensions in Burp Suite, follow these steps:
 
 3. **Add extensions to Burp Suite:**
    - Open Burp Suite.
-   - Go to the "Extender" tab.
-   - Click on the "Extensions" sub-tab.
+   - Go to the "Extensions" tab.
+   - Click on the "Installed" sub-tab.
    - Click "Add" and choose the appropriate .py file from the folder of the extension you want to add.
+	 In some cases there will be an extension with more than one file. In that case you should add the file with the word "main" in its name and check that the other files related to it exist in the same folder.
 
 ## Extensions
 
 ### Content Type Converter
-Convert the content type of a request easily. Right-click on the request, choose this extension, and select the target content type. The extension updates both the request header and body, creating a new tab in the Repeater with the converted request.
+Convert the content type of a request. Right-click on the request, choose this extension, and select the target content type. The extension updates both the request header and body, creating a new tab in the Repeater with the converted request.
 
 ### Request2Python
 Convert HTTP requests to Python code. Right-click on the request, select this extension, and the Python code representation of the request will be displayed in a new tab within the extension interface.
@@ -42,7 +43,7 @@ Add a new tab to the request/response viewer to display any Unicode-encoded char
 Similar to the Unicode Decoder, this extension adds a new tab to the request/response viewer. It decodes Unicode characters and translates the content to English, providing a clear view of the text in a single tab.
 
 ### JWT Command Generator
-Generate `jwt_tool` commands directly from your requests. Right-click on a request, select this extension, and it will extract the JWT and URL. The extension then generates a `jwt_tool` command, ready to be copied and used in the command line for testing security vulnerabilities.
+Generate `jwt_tool` commands directly from your requests. Right-click on a request, select this extension, and it will send the JWT and URL to the extension tab as inputs. The extension then generates a `jwt_tool` command, ready to be copied and used in the command line for testing security vulnerabilities. It also have a manual option for inputs.
 
 ---
 
