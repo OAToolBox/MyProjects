@@ -12,8 +12,7 @@ To use these extensions in Burp Suite, follow these steps:
    ```
    pip install -r requirements.txt
    ```
-
-2. **Install extension-specific dependencies:**
+   **Alternatively You can install extension-specific dependencies:**
    Each extension folder contains its own `requirements.txt` file. Navigate to the desired extension folder and install its dependencies:
    ```
    pip install -r extension-folder-name/requirements.txt
