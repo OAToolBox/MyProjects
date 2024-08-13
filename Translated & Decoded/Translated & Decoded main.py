@@ -27,7 +27,7 @@ class TranslatedDecodedTab(IMessageEditorTab):
         
         # Create a text pane to display the decoded and translated text with syntax highlighting
         self._textPane = JTextPane()
-        self._textPane.setFont(Font("Monospaced", Font.PLAIN, 20))  # Increased font size
+        self._textPane.setFont(Font("Monospaced", Font.PLAIN, 18))  # Increased font size
         self._styledDoc = DefaultStyledDocument()
         self._textPane.setStyledDocument(self._styledDoc)
         self._scrollPane = JScrollPane(self._textPane)
