@@ -40,7 +40,7 @@ This extension adds a tab where you can input text to translate from one languag
 Add a new tab to the request/response viewer to display any Unicode-encoded characters in a human-readable format. It appears alongside existing tabs like "Pretty" and "Raw."
 
 ### Translated & Decoded
-Similar to the Unicode Decoder, this extension adds a new tab to the request/response viewer. It decodes Unicode characters and translates the content to English, providing a clear view of the text in a single tab.
+This extension adds a new tab to the request/response viewer. It collects encoded non-English characters and translates the content into English.
 
 ### JWT Command Generator
 Generate `jwt_tool` commands directly from your requests. Right-click on a request, select this extension, and it will send the JWT and URL to the extension tab as inputs. The extension then generates a `jwt_tool` command, ready to be copied and used in the command line for testing security vulnerabilities. It also have a manual option for inputs.
