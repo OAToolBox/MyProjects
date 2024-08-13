@@ -1,9 +1,10 @@
 from burp import IBurpExtender, IMessageEditorTabFactory, IMessageEditorTab
 from javax.swing import JScrollPane, JTextPane
-from javax.swing.text import DefaultStyledDocument, StyleConstants, SimpleAttributeSet, StyleContext
+from javax.swing.text import DefaultStyledDocument, StyleConstants, StyleContext
 import re
 from java.awt import Color, Font
 import subprocess
+import array  # Import the array module
 
 class BurpExtender(IBurpExtender, IMessageEditorTabFactory):
     def registerExtenderCallbacks(self, callbacks):
@@ -48,9 +49,12 @@ class TranslatedDecodedTab(IMessageEditorTab):
         if content:
             analyzed_message = self._helpers.analyzeRequest(content) if isRequest else self._helpers.analyzeResponse(content)
             headers = analyzed_message.getHeaders()
-            body = self._helpers.bytesToString(content[analyzed_message.getBodyOffset():])
-            decoded_body = self.decodeUnicode(body)
-            translated_body = self.translateText(decoded_body, "en")  # Translate to English
+            body = content[analyzed_message.getBodyOffset():]
+            decoded_body = self.decodeText(body)
+            
+            # Translate only the non-English parts of the decoded body
+            translated_body = self.translateText(decoded_body, "en")
+            
             pretty_message = self.prettifyContent(headers, translated_body)
             self.applySyntaxHighlighting(pretty_message)
         else:
@@ -66,31 +70,73 @@ class TranslatedDecodedTab(IMessageEditorTab):
     def getSelectedData(self):
         return None
 
-    def decodeUnicode(self, text):
-        # Decode Unicode escape sequences
-        try:
-            decoded_text = text.encode('latin1').decode('unicode-escape')
-        except Exception as e:
-            print("Error decoding text:", e)
-            decoded_text = text
-        return decoded_text
+    def decodeText(self, byte_array):
+        # Convert array to bytes
+        if isinstance(byte_array, array.array):
+            byte_array = byte_array.tostring()
+        
+        # Try common encodings
+        encodings = ['utf-8', 'iso-8859-1', 'shift_jis', 'euc-jp', 'gb2312']
+        for enc in encodings:
+            try:
+                return byte_array.decode(enc)
+            except (UnicodeDecodeError, AttributeError):
+                continue
+        
+        # Fall back to replacing errors if all else fails
+        return byte_array.decode('utf-8', errors='replace')
 
-    def translateText(self, text, target_lang):
+    def translateText(self, text, target_lang="en"):
         script_path = "translate_script.py"
-        source_lang = "auto"  # Automatically detect source language
+        source_lang = "auto"
+
         try:
+            # Regex to find non-English characters
+            non_english_pattern = re.compile(r'[^\x00-\x7F]+')
+            
+            # Find all non-English segments
+            non_english_segments = non_english_pattern.findall(text)
+            
+            if not non_english_segments:
+                return text  # No translation needed if no non-English text
+            
+            # Combine all non-English segments into one string, separated by a newline
+            combined_segments = "\n".join(non_english_segments)
+            encoded_segments = combined_segments.encode('utf-8')
+            
+            print("Translating combined segments: %s..." % encoded_segments[:100])
+            
+            # Translate the combined non-English segments
             result = subprocess.check_output(
-                ["python", script_path, source_lang, target_lang, text],
+                ["python", script_path, source_lang, target_lang, encoded_segments],
                 stderr=subprocess.STDOUT
             )
-            translated_text = result.decode('utf-8')
+            
+            # Split the translated result back into individual segments
+            translated_segments = result.decode('utf-8').split("\n")
+            
+            # Replace non-English segments with their translations, ensuring all are replaced
+            translated_text = text
+            for original, translated in zip(non_english_segments, translated_segments):
+                translated_text = translated_text.replace(original, translated, 1)
+            
+            print("Final translated text:", translated_text)
             return translated_text
+        
         except subprocess.CalledProcessError as e:
-            return "Translation error: {}. Input was src='{}', dest='{}', text='{}'".format(e.output.decode('utf-8'), source_lang, target_lang, text)
+            error_message = e.output.decode('utf-8')
+            print("Translation error:", error_message)
+            return "Translation error: %s" % error_message
+        
         except FileNotFoundError:
-            return "Error: Script file not found at {}".format(script_path)
+            return "Error: Script file not found at %s" % script_path
+        
         except Exception as e:
-            return "Unexpected error: {}. Input was src='{}', dest='{}', text='{}'".format(str(e), source_lang, target_lang, text)
+            return "Unexpected error: %s. Input was src='%s', dest='%s', text='%s...'" % (
+                str(e), source_lang, target_lang, text[:100])
+
+
+
 
     def prettifyContent(self, headers, body):
         """Prettify the HTTP message for display."""
